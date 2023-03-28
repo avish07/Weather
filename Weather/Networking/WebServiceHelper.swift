@@ -13,6 +13,10 @@ enum APIError: Error {
 
 enum WebServiceHelper {
   static func get<T: Decodable>(dataOf urlString: String, of: T.Type, completion: @escaping (Result<T, Error>) -> Void) {
+    guard let urlString = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+      completion(.failure(APIError.noData))
+      return
+    }
     AF.request(urlString).validate()
       .responseDecodable(of: T.self) { response in
         if let value = response.value {
