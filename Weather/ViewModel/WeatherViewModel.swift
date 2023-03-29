@@ -25,6 +25,20 @@ final class WeatherViewModel {
     }
   }
 
+  var selectedCity: String? {
+    searchText?.components(separatedBy: "_").first
+  }
+
+  var selectedState: String? {
+    searchText?.components(separatedBy: "_").last
+  }
+
+  func viewDidLoad() {
+    if let selectedCity = selectedCity, !selectedCity.isEmpty {
+      fetchLocationDetails(for: selectedCity, isAutoload: true)
+    }
+  }
+
   func fetchReverseLocationDetails(for lat: Float, lon: Float) {
     let urlString = "\(Constants.weatherBaseURL)/geo/1.0/reverse?lat=\(lat)&lon=\(lon)&limit=15&appid=\(Constants.openWeatherAPIKey)"
     WebServiceHelper.get(dataOf: urlString, of: [Location].self) { [weak self] response in
@@ -37,14 +51,21 @@ final class WeatherViewModel {
     }
   }
 
-  func fetchLocationDetails(for searchText: String) {
-    self.searchText = searchText
+  func fetchLocationDetails(for searchText: String, isAutoload: Bool = false) {
     let urlString = "\(Constants.weatherBaseURL)/geo/1.0/direct?q=\(searchText)&limit=15&appid=\(Constants.openWeatherAPIKey)"
     WebServiceHelper.get(dataOf: urlString, of: [Location].self) { [weak self] response in
       switch response {
       case .success(let location):
         self?.location = location
-        self?.reloadResultsTable?()
+        if isAutoload {
+          if let location = self?.filteredResults?.first(where: {
+            $0.name == self?.selectedCity && $0.state == self?.selectedState
+          }) {
+            self?.updateView?(location)
+          }
+        } else {
+          self?.reloadResultsTable?()
+        }
       case.failure(_): break
       }
     }

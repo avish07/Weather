@@ -25,7 +25,7 @@ final class ViewController: UIViewController {
   @IBOutlet weak private var weatherImageView: UIImageView!
   
   private lazy var resultsTableController: LocationResultsTableController = {
-    let resultController = self.storyboard?.instantiateViewController(withIdentifier: "LocationResultsTableController") as! LocationResultsTableController
+    let resultController = self.storyboard?.instantiateViewController(withIdentifier: Constants.LocationResultsTableControllerID) as! LocationResultsTableController
     resultController.tableView.delegate = self
     return resultController
   }()
@@ -42,6 +42,7 @@ final class ViewController: UIViewController {
     setupSearchController()
     bindOutputs()
     fetchUserLocation()
+    viewModel.viewDidLoad()
   }
   
   func resetResultsController() {
@@ -50,11 +51,7 @@ final class ViewController: UIViewController {
       resultsController.tableView.reloadData()
     }
   }
-  
-  private func setupUI() {
-    setupSearchController()
-  }
-  
+
   private func setupSearchController() {
     searchController = UISearchController(searchResultsController: resultsTableController)
     searchController.searchResultsUpdater = self
@@ -65,7 +62,7 @@ final class ViewController: UIViewController {
     
     // Make the search bar always visible.
     navigationItem.hidesSearchBarWhenScrolling = false
-    searchController.searchBar.text = viewModel.searchText
+    searchController.searchBar.placeholder = Constants.searchPlaceholder
   }
   
   private func bindOutputs() {
@@ -91,26 +88,26 @@ final class ViewController: UIViewController {
       DispatchQueue.main.async {
         if let resultsController = self?.searchController.searchResultsController as? LocationResultsTableController {
           resultsController.filteredLocations = self?.viewModel.filteredResults ?? []
-          if !(self?.searchController.searchBar.isFirstResponder ?? false) {
-            self?.searchController.searchBar.becomeFirstResponder()
-          }
-          resultsController.tableView.reloadData()
+         resultsController.tableView.reloadData()
         }
       }
     }
   }
   
   private func fetchUserLocation() {
+    guard viewModel.searchText == nil else { return }
     locationManager.requestWhenInUseAuthorization()
   }
   
   private func updateView(location: Location?) {
-    cityLabel.text = location?.name ?? ""
-    stateLabel.text = location?.state ?? ""
-    countryLabel.text = location?.country ?? ""
-    if let lat = location?.lat, let lon = location?.lon {
+    guard let location = location else { return }
+    cityLabel.text = location.name ?? ""
+    stateLabel.text = location.state ?? ""
+    countryLabel.text = location.country ?? ""
+    if let lat = location.lat, let lon = location.lon {
       latitudeLabel.text = "\(lat)"
       longitudeLabel.text = "\(lon)"
+      viewModel.searchText = "\(location.name ?? " ")_\(location.state ?? " ")"
       viewModel.fetchWeatherDetails(of: lat, lon: lon)
     }
   }

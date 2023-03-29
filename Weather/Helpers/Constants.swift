@@ -10,8 +10,10 @@ enum Constants {
   static let weatherBaseURL = "https://api.openweathermap.org"
   static let imageBaseURL = "https://openweathermap.org/img/wn"
   static let usaCountryCode = "US"
+  static let searchPlaceholder = "Search for a city"
   static let searchText = "searchText"
   static let tableViewCellID  = "TableViewCell"
+  static let LocationResultsTableControllerID = "LocationResultsTableController"
   static let locationPersmission = "Please enable your location permission from the settings."
   static let ok = "OK"
 }
